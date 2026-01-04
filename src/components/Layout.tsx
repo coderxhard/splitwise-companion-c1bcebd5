@@ -9,8 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Home, Users, LogOut, Menu, X } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Users, LogOut, Menu, X, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 interface LayoutProps {
@@ -31,6 +31,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const getInitials = (email: string) => {
     return email.slice(0, 2).toUpperCase();
   };
+
+  const [profile, setProfile] = useState<{ name: string; avatar_url: string | null } | null>(null);
+
+  React.useEffect(() => {
+    if (user) {
+      import('@/integrations/supabase/client').then(({ supabase }) => {
+        supabase
+          .from('profiles')
+          .select('name, avatar_url')
+          .eq('user_id', user.id)
+          .maybeSingle()
+          .then(({ data }) => setProfile(data));
+      });
+    }
+  }, [user]);
 
   const navItems = [
     { href: '/groups', label: 'Groups', icon: Users },
@@ -73,8 +88,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name} />
                     <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-                      {user?.email ? getInitials(user.email) : 'U'}
+                      {profile?.name ? profile.name.slice(0, 2).toUpperCase() : user?.email ? getInitials(user.email) : 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -82,9 +98,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-sm">{user?.email}</p>
+                    <p className="font-medium text-sm">{profile?.name || user?.email}</p>
+                    {profile?.name && <p className="text-xs text-muted-foreground">{user?.email}</p>}
                   </div>
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Profile Settings
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />

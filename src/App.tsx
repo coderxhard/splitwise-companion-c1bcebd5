@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage";
 import GroupsPage from "./pages/GroupsPage";
 import GroupDashboard from "./pages/GroupDashboard";
 import JoinGroupPage from "./pages/JoinGroupPage";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/groups" element={<GroupsPage />} />
             <Route path="/groups/:id" element={<GroupDashboard />} />
             <Route path="/join/:code" element={<JoinGroupPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
