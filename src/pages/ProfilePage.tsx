@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from 'next-themes';
 import { Layout } from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
-import { Camera, Loader2, User } from 'lucide-react';
+import { Camera, Loader2, User, Sun, Moon, Monitor } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface Profile {
   id: string;
@@ -19,6 +21,7 @@ interface Profile {
 }
 
 const ProfilePage: React.FC = () => {
+  const { theme, setTheme } = useTheme();
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState('');
@@ -266,6 +269,34 @@ const ProfilePage: React.FC = () => {
                 'Save Changes'
               )}
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>Choose your preferred theme</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ToggleGroup
+              type="single"
+              value={theme}
+              onValueChange={(value) => value && setTheme(value)}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="light" aria-label="Light mode" className="gap-2">
+                <Sun className="h-4 w-4" />
+                Light
+              </ToggleGroupItem>
+              <ToggleGroupItem value="dark" aria-label="Dark mode" className="gap-2">
+                <Moon className="h-4 w-4" />
+                Dark
+              </ToggleGroupItem>
+              <ToggleGroupItem value="system" aria-label="System theme" className="gap-2">
+                <Monitor className="h-4 w-4" />
+                System
+              </ToggleGroupItem>
+            </ToggleGroup>
           </CardContent>
         </Card>
       </div>
