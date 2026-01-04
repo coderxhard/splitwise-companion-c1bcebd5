@@ -10,12 +10,14 @@ import { ExpenseChart } from '@/components/ExpenseChart';
 import { useGroup, useGroupMembers } from '@/hooks/useGroups';
 import { useExpenses, useExpenseSplits, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { calculateNetBalances, calculateSettlements, formatCurrency } from '@/lib/balanceCalculator';
+import { exportToCSV, exportToPDF } from '@/lib/exportExpenses';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3 } from 'lucide-react';
+import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const GroupDashboard: React.FC = () => {
@@ -146,6 +148,18 @@ const GroupDashboard: React.FC = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!expenses || !splits || !members || !group) return;
+    exportToCSV({ expenses, splits, members, groupName: group.name });
+    toast({ title: 'CSV exported successfully!' });
+  };
+
+  const handleExportPDF = () => {
+    if (!expenses || !splits || !members || !group) return;
+    exportToPDF({ expenses, splits, members, groupName: group.name });
+    toast({ title: 'PDF exported successfully!' });
+  };
+
   const inviteUrl = `${window.location.origin}/join/${group.invite_code}`;
 
   return (
@@ -262,6 +276,26 @@ const GroupDashboard: React.FC = () => {
 
           {/* Expenses Tab */}
           <TabsContent value="expenses">
+            <div className="flex justify-end mb-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={!expenses || expenses.length === 0}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleExportCSV}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             {expensesLoading || splitsLoading || membersLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
