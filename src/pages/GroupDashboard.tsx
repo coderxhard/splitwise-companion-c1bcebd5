@@ -4,11 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/Layout';
 import { BalanceCard } from '@/components/BalanceCard';
 import { SettlementList } from '@/components/SettlementList';
+import { SettlementHistory } from '@/components/SettlementHistory';
+import { RecordSettlementDialog } from '@/components/RecordSettlementDialog';
 import { ExpenseList } from '@/components/ExpenseList';
 import { AddExpenseDialog } from '@/components/AddExpenseDialog';
 import { ExpenseChart } from '@/components/ExpenseChart';
 import { useGroup, useGroupMembers } from '@/hooks/useGroups';
 import { useExpenses, useExpenseSplits, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
+import { useSettlements, useCreateSettlement, useDeleteSettlement } from '@/hooks/useSettlements';
 import { calculateNetBalances, calculateSettlements, formatCurrency } from '@/lib/balanceCalculator';
 import { exportToCSV, exportToPDF } from '@/lib/exportExpenses';
 import { Button } from '@/components/ui/button';
@@ -17,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const GroupDashboard: React.FC = () => {
@@ -28,12 +31,17 @@ const GroupDashboard: React.FC = () => {
   const { data: members, isLoading: membersLoading } = useGroupMembers(groupId || '');
   const { data: expenses, isLoading: expensesLoading } = useExpenses(groupId || '');
   const { data: splits, isLoading: splitsLoading } = useExpenseSplits(groupId || '');
+  const { data: settlementRecords, isLoading: settlementsLoading } = useSettlements(groupId || '');
   
   const createExpense = useCreateExpense();
   const deleteExpense = useDeleteExpense();
+  const createSettlement = useCreateSettlement();
+  const deleteSettlement = useDeleteSettlement();
 
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [recordSettlementOpen, setRecordSettlementOpen] = useState(false);
+  const [suggestedSettlement, setSuggestedSettlement] = useState<{ toUserId: string; amount: number } | null>(null);
   const [copied, setCopied] = useState(false);
 
   // Calculate balances
@@ -162,6 +170,32 @@ const GroupDashboard: React.FC = () => {
 
   const inviteUrl = `${window.location.origin}/join/${group.invite_code}`;
 
+  const handleRecordSettlement = (data: { toUserId: string; amount: number; notes?: string }) => {
+    createSettlement.mutate({
+      groupId: groupId!,
+      toUserId: data.toUserId,
+      amount: data.amount,
+      notes: data.notes
+    }, {
+      onSuccess: () => {
+        setRecordSettlementOpen(false);
+        setSuggestedSettlement(null);
+      }
+    });
+  };
+
+  const handleSettleClick = (fromUserId: string, toUserId: string, amount: number) => {
+    // Only allow current user to record their own payments
+    if (fromUserId === user.id) {
+      setSuggestedSettlement({ toUserId, amount });
+      setRecordSettlementOpen(true);
+    }
+  };
+
+  const handleDeleteSettlement = (settlementId: string) => {
+    deleteSettlement.mutate({ settlementId, groupId: groupId! });
+  };
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto">
@@ -245,10 +279,11 @@ const GroupDashboard: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="balances" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="balances">Balances</TabsTrigger>
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
             <TabsTrigger value="settlements">Settle Up</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="charts">Charts</TabsTrigger>
           </TabsList>
 
@@ -317,15 +352,49 @@ const GroupDashboard: React.FC = () => {
           {/* Settlements Tab */}
           <TabsContent value="settlements">
             <Card className="border-0 shadow-sm">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-display text-lg">Who Owes Whom</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setRecordSettlementOpen(true)}>
+                  <Banknote className="h-4 w-4 mr-2" />
+                  Record Payment
+                </Button>
               </CardHeader>
               <CardContent>
                 <SettlementList
                   settlements={settlements}
                   memberNames={memberNames}
                   currentUserId={user.id}
+                  onSettleClick={handleSettleClick}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history">
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display text-lg flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  Settlement History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {settlementsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
+                    ))}
+                  </div>
+                ) : (
+                  <SettlementHistory
+                    settlements={settlementRecords || []}
+                    members={members || []}
+                    currentUserId={user.id}
+                    onDelete={handleDeleteSettlement}
+                    isDeleting={deleteSettlement.isPending}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -403,6 +472,20 @@ const GroupDashboard: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Record Settlement Dialog */}
+      <RecordSettlementDialog
+        open={recordSettlementOpen}
+        onOpenChange={(open) => {
+          setRecordSettlementOpen(open);
+          if (!open) setSuggestedSettlement(null);
+        }}
+        members={members || []}
+        currentUserId={user.id}
+        suggestedSettlement={suggestedSettlement}
+        onSubmit={handleRecordSettlement}
+        isLoading={createSettlement.isPending}
+      />
     </Layout>
   );
 };

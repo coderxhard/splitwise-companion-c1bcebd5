@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/balanceCalculator';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Banknote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Settlement {
   from: string;
@@ -12,12 +13,14 @@ interface SettlementListProps {
   settlements: Settlement[];
   memberNames: Map<string, string>;
   currentUserId: string;
+  onSettleClick?: (fromUserId: string, toUserId: string, amount: number) => void;
 }
 
 export const SettlementList: React.FC<SettlementListProps> = ({
   settlements,
   memberNames,
-  currentUserId
+  currentUserId,
+  onSettleClick
 }) => {
   if (settlements.length === 0) {
     return (
@@ -62,11 +65,24 @@ export const SettlementList: React.FC<SettlementListProps> = ({
                 </span>
               </div>
             </div>
-            <span className={`font-bold text-lg ${
-              currentUserOwes ? 'text-destructive' : currentUserReceives ? 'text-success' : ''
-            }`}>
-              {formatCurrency(settlement.amount)}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`font-bold text-lg ${
+                currentUserOwes ? 'text-destructive' : currentUserReceives ? 'text-success' : ''
+              }`}>
+                {formatCurrency(settlement.amount)}
+              </span>
+              {currentUserOwes && onSettleClick && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSettleClick(settlement.from, settlement.to, settlement.amount)}
+                  className="ml-2"
+                >
+                  <Banknote className="h-4 w-4 mr-1" />
+                  Settle
+                </Button>
+              )}
+            </div>
           </div>
         );
       })}
