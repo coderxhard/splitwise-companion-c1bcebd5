@@ -112,19 +112,18 @@ export function useCreateGroup() {
     mutationFn: async ({ name, description, type }: { name: string; description?: string; type: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      // IMPORTANT: don't request the inserted row back (RETURNING) because RLS
+      // SELECT policies may block returning the new row before post-insert triggers run.
+      const { error } = await supabase
         .from('groups')
         .insert({
           name,
           description,
           type,
           created_by: user.id
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
