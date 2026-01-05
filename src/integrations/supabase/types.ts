@@ -188,6 +188,39 @@ export type Database = {
         }
         Relationships: []
       }
+      settlements: {
+        Row: {
+          amount: number
+          created_at: string
+          from_user_id: string
+          group_id: string
+          id: string
+          notes: string | null
+          settled_at: string
+          to_user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          from_user_id: string
+          group_id: string
+          id?: string
+          notes?: string | null
+          settled_at?: string
+          to_user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          from_user_id?: string
+          group_id?: string
+          id?: string
+          notes?: string | null
+          settled_at?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
