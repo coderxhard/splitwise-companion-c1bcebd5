@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { sendPushNotification } from '@/hooks/usePushNotifications';
 
 export interface Settlement {
   id: string;
@@ -70,6 +71,15 @@ export function useCreateSettlement() {
       toast({
         title: 'Settlement recorded',
         description: 'The payment has been recorded successfully.'
+      });
+      
+      // Send push notification to the recipient
+      sendPushNotification({
+        groupId: variables.groupId,
+        type: 'settlement',
+        title: 'Payment Received',
+        body: `You received a payment of $${variables.amount.toFixed(2)}`,
+        actorUserId: user?.id || ''
       });
     },
     onError: (error) => {
