@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { sendPushNotification } from '@/hooks/usePushNotifications';
 
 export interface Expense {
   id: string;
@@ -131,12 +132,21 @@ export function useCreateExpense() {
 
       return expense;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (expense, variables) => {
       queryClient.invalidateQueries({ queryKey: ['expenses', variables.groupId] });
       queryClient.invalidateQueries({ queryKey: ['expense-splits', variables.groupId] });
       toast({
         title: 'Expense added',
         description: 'The expense has been recorded successfully.'
+      });
+      
+      // Send push notification to group members
+      sendPushNotification({
+        groupId: variables.groupId,
+        type: 'expense',
+        title: 'New Expense Added',
+        body: `${variables.title} - $${variables.amount.toFixed(2)}`,
+        actorUserId: user?.id || ''
       });
     },
     onError: (error) => {

@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, LogOut, Menu, X, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { NotificationToggle } from '@/components/NotificationToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -83,7 +84,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
 
           {/* User Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <NotificationToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
