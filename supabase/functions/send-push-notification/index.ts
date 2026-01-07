@@ -121,6 +121,26 @@ serve(async (req) => {
     const userIds = members.map(m => m.user_id);
     console.log('Notifying users:', userIds);
 
+    // Store in-app notifications for all users
+    const notificationsToInsert = userIds.map(userId => ({
+      user_id: userId,
+      group_id: payload.groupId,
+      type: payload.type,
+      title: payload.title,
+      body: payload.body,
+      is_read: false
+    }));
+
+    const { error: insertError } = await supabase
+      .from('notifications')
+      .insert(notificationsToInsert);
+
+    if (insertError) {
+      console.error('Error inserting notifications:', insertError);
+    } else {
+      console.log(`Stored ${notificationsToInsert.length} in-app notifications`);
+    }
+
     // Get push subscriptions for these users
     const { data: subscriptions, error: subsError } = await supabase
       .from('push_subscriptions')
@@ -135,7 +155,7 @@ serve(async (req) => {
     if (!subscriptions || subscriptions.length === 0) {
       console.log('No push subscriptions found for group members');
       return new Response(
-        JSON.stringify({ success: true, sent: 0 }),
+        JSON.stringify({ success: true, sent: 0, stored: notificationsToInsert.length }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
