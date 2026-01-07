@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { playNotificationSound } from '@/lib/notificationSound';
 
 export interface Notification {
   id: string;
@@ -52,6 +53,12 @@ export function useNotifications() {
         },
         (payload) => {
           console.log('Notification realtime update:', payload);
+          
+          // Play sound for new notifications
+          if (payload.eventType === 'INSERT') {
+            playNotificationSound();
+          }
+          
           // Invalidate queries to refetch
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
