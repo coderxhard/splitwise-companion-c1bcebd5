@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +16,35 @@ export interface Notification {
 
 export function useNotifications() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Notification realtime update:', payload);
+          // Invalidate queries to refetch
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   return useQuery({
     queryKey: ['notifications'],
@@ -31,8 +61,7 @@ export function useNotifications() {
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user,
-    refetchInterval: 30000 // Refetch every 30 seconds
+    enabled: !!user
   });
 }
 
@@ -53,8 +82,7 @@ export function useUnreadCount() {
       if (error) throw error;
       return count || 0;
     },
-    enabled: !!user,
-    refetchInterval: 30000
+    enabled: !!user
   });
 }
 
