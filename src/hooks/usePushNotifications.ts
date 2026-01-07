@@ -48,8 +48,17 @@ export function usePushNotifications() {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      // Check if service worker is registered with a timeout
+      const swRegistration = await navigator.serviceWorker.getRegistration('/sw.js');
+      
+      if (!swRegistration) {
+        // No service worker registered yet
+        setIsSubscribed(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const subscription = await swRegistration.pushManager.getSubscription();
       
       if (subscription) {
         // Check if this subscription exists in our database
@@ -58,7 +67,7 @@ export function usePushNotifications() {
           .select('id')
           .eq('user_id', user.id)
           .eq('endpoint', subscription.endpoint)
-          .single();
+          .maybeSingle();
 
         setIsSubscribed(!!data);
       } else {
@@ -66,6 +75,7 @@ export function usePushNotifications() {
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
+      setIsSubscribed(false);
     } finally {
       setIsLoading(false);
     }
