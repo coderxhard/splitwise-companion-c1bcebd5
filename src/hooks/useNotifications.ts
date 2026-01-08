@@ -1,8 +1,9 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { playNotificationSound } from '@/lib/notificationSound';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 export interface Notification {
   id: string;
@@ -17,6 +18,7 @@ export interface Notification {
 
 export function useNotifications() {
   const { user } = useAuth();
+  const { shouldPlaySound, isTypeEnabled } = useNotificationPreferences();
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -54,9 +56,12 @@ export function useNotifications() {
         (payload) => {
           console.log('Notification realtime update:', payload);
           
-          // Play sound for new notifications
-          if (payload.eventType === 'INSERT') {
-            playNotificationSound();
+          // Play sound for new notifications if enabled
+          if (payload.eventType === 'INSERT' && shouldPlaySound()) {
+            const newNotification = payload.new as Notification;
+            if (isTypeEnabled(newNotification.type)) {
+              playNotificationSound();
+            }
           }
           
           // Invalidate queries to refetch
