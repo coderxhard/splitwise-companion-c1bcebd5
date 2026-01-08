@@ -2,11 +2,21 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Bell, Volume2, Receipt, Handshake, Users } from 'lucide-react';
+import { Bell, Volume2, Receipt, Handshake, Users, Smartphone, Loader2 } from 'lucide-react';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export const NotificationPreferences: React.FC = () => {
   const { preferences, setSoundEnabled, setTypeEnabled } = useNotificationPreferences();
+  const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotifications();
+
+  const handlePushToggle = async (checked: boolean) => {
+    if (checked) {
+      await subscribe();
+    } else {
+      await unsubscribe();
+    }
+  };
 
   return (
     <Card>
@@ -18,6 +28,32 @@ export const NotificationPreferences: React.FC = () => {
         <CardDescription>Configure how you receive notifications</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Push notifications toggle */}
+        {isSupported && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Smartphone className="h-4 w-4 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="push-toggle" className="font-medium">
+                  Push Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive notifications even when the app is closed
+                </p>
+              </div>
+            </div>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                id="push-toggle"
+                checked={isSubscribed}
+                onCheckedChange={handlePushToggle}
+              />
+            )}
+          </div>
+        )}
+
         {/* Sound toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
