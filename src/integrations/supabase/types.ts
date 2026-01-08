@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_preferences: {
+        Row: {
+          created_at: string
+          digest_frequency: string
+          email_enabled: boolean
+          expense_emails: boolean
+          id: string
+          member_emails: boolean
+          settlement_emails: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_frequency?: string
+          email_enabled?: boolean
+          expense_emails?: boolean
+          id?: string
+          member_emails?: boolean
+          settlement_emails?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_frequency?: string
+          email_enabled?: boolean
+          expense_emails?: boolean
+          id?: string
+          member_emails?: boolean
+          settlement_emails?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_splits: {
         Row: {
           amount: number
