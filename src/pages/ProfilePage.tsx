@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { Camera, Loader2, User, Sun, Moon, Monitor } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { NotificationPreferences } from '@/components/NotificationPreferences';
 
 interface Profile {
   id: string;
@@ -271,6 +272,8 @@ const ProfilePage: React.FC = () => {
             </Button>
           </CardContent>
         </Card>
+
+        <NotificationPreferences />
 
         <Card>
           <CardHeader>
