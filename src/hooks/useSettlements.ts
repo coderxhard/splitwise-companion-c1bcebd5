@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { sendPushNotification } from '@/hooks/usePushNotifications';
+import { triggerConfetti } from '@/lib/confetti';
 
 export interface Settlement {
   id: string;
@@ -68,8 +69,12 @@ export function useCreateSettlement() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['settlements', variables.groupId] });
+      
+      // Trigger celebration confetti!
+      triggerConfetti();
+      
       toast({
-        title: 'Settlement recorded',
+        title: '🎉 Settlement recorded!',
         description: 'The payment has been recorded successfully.'
       });
       
