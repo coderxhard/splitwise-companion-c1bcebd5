@@ -188,26 +188,31 @@ const ProfilePage: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
+        <div className="opacity-0 animate-fade-in-down">
           <h1 className="font-display text-3xl font-bold">Profile Settings</h1>
           <p className="text-muted-foreground mt-1">Manage your account settings</p>
         </div>
 
-        <Card>
+        <Card className="opacity-0 animate-fade-in-up overflow-hidden" style={{ animationDelay: '0.05s' }}>
           <CardHeader>
-            <CardTitle>Profile Picture</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              Profile Picture
+            </CardTitle>
             <CardDescription>Click to upload a new avatar</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
               <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                <Avatar className="h-24 w-24 border-4 border-background shadow-lg transition-transform duration-300 group-hover:scale-105">
                   <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name} />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-medium">
                     {profile?.name ? getInitials(profile.name) : <User className="h-10 w-10" />}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300">
                   {uploading ? (
                     <Loader2 className="h-6 w-6 animate-spin text-white" />
                   ) : (
@@ -232,7 +237,7 @@ const ProfilePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="opacity-0 animate-fade-in-up" style={{ animationDelay: '0.08s' }}>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>Update your display name</CardDescription>
@@ -245,7 +250,7 @@ const ProfilePage: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="max-w-md"
+                className="max-w-md transition-all duration-200 focus:scale-[1.01]"
               />
             </div>
             <div className="space-y-2">
@@ -261,6 +266,7 @@ const ProfilePage: React.FC = () => {
             <Button 
               onClick={handleSave} 
               disabled={saving || !name.trim() || name === profile?.name}
+              className="transition-all duration-200 hover:scale-105"
             >
               {saving ? (
                 <>
@@ -278,9 +284,14 @@ const ProfilePage: React.FC = () => {
 
         <EmailPreferences />
 
-        <Card>
+        <Card className="opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <CardHeader>
-            <CardTitle>Appearance</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                {theme === 'dark' ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+              </div>
+              Appearance
+            </CardTitle>
             <CardDescription>Choose your preferred theme</CardDescription>
           </CardHeader>
           <CardContent>
@@ -290,15 +301,15 @@ const ProfilePage: React.FC = () => {
               onValueChange={(value) => value && setTheme(value)}
               className="justify-start"
             >
-              <ToggleGroupItem value="light" aria-label="Light mode" className="gap-2">
+              <ToggleGroupItem value="light" aria-label="Light mode" className="gap-2 transition-all duration-200 hover:scale-105 data-[state=on]:scale-105">
                 <Sun className="h-4 w-4" />
                 Light
               </ToggleGroupItem>
-              <ToggleGroupItem value="dark" aria-label="Dark mode" className="gap-2">
+              <ToggleGroupItem value="dark" aria-label="Dark mode" className="gap-2 transition-all duration-200 hover:scale-105 data-[state=on]:scale-105">
                 <Moon className="h-4 w-4" />
                 Dark
               </ToggleGroupItem>
-              <ToggleGroupItem value="system" aria-label="System theme" className="gap-2">
+              <ToggleGroupItem value="system" aria-label="System theme" className="gap-2 transition-all duration-200 hover:scale-105 data-[state=on]:scale-105">
                 <Monitor className="h-4 w-4" />
                 System
               </ToggleGroupItem>
