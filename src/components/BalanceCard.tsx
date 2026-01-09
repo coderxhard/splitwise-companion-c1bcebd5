@@ -8,6 +8,7 @@ interface BalanceCardProps {
   totalPaid: number;
   totalOwed: number;
   isCurrentUser?: boolean;
+  index?: number;
 }
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({
@@ -15,26 +16,30 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   balance,
   totalPaid,
   totalOwed,
-  isCurrentUser = false
+  isCurrentUser = false,
+  index = 0
 }) => {
   const isPositive = balance > 0.01;
   const isNegative = balance < -0.01;
   const isSettled = !isPositive && !isNegative;
 
   return (
-    <div className={`stat-card ${isCurrentUser ? 'ring-2 ring-primary/20' : ''}`}>
+    <div 
+      className={`stat-card opacity-0 animate-fade-in-up ${isCurrentUser ? 'ring-2 ring-primary/20' : ''}`}
+      style={{ animationDelay: `${index * 0.08}s` }}
+    >
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-medium text-foreground">
             {userName}
             {isCurrentUser && (
-              <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full animate-fade-in">
                 You
               </span>
             )}
           </p>
         </div>
-        <div className={`p-2 rounded-lg ${
+        <div className={`p-2 rounded-lg transition-all duration-300 ${
           isPositive ? 'bg-success/10' : isNegative ? 'bg-destructive/10' : 'bg-muted'
         }`}>
           {isPositive ? (
@@ -59,13 +64,13 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
         <div className="pt-2 border-t">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-muted-foreground">Net Balance</span>
-            <span className={`text-lg font-bold ${
+            <span className={`text-lg font-bold transition-colors duration-300 ${
               isPositive ? 'text-success' : isNegative ? 'text-destructive' : 'text-muted-foreground'
             }`}>
               {isPositive && '+'}{formatCurrency(balance)}
             </span>
           </div>
-          <p className={`text-xs mt-1 ${
+          <p className={`text-xs mt-1 transition-colors duration-300 ${
             isPositive ? 'text-success' : isNegative ? 'text-destructive' : 'text-muted-foreground'
           }`}>
             {isPositive 

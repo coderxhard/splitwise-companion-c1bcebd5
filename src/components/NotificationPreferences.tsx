@@ -19,20 +19,24 @@ export const NotificationPreferences: React.FC = () => {
   };
 
   return (
-    <Card>
+    <Card className="opacity-0 animate-fade-in-up overflow-hidden" style={{ animationDelay: '0.1s' }}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
+          <div className="p-2 rounded-lg bg-primary/10 icon-float">
+            <Bell className="h-5 w-5 text-primary" />
+          </div>
           Notifications
         </CardTitle>
         <CardDescription>Configure how you receive notifications</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Push notifications toggle */}
         {isSupported && (
-          <div className="flex items-center justify-between">
+          <div className="preference-row opacity-0 animate-slide-up stagger-1">
             <div className="flex items-center gap-3">
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-muted">
+                <Smartphone className="h-4 w-4 text-muted-foreground" />
+              </div>
               <div className="space-y-0.5">
                 <Label htmlFor="push-toggle" className="font-medium">
                   Push Notifications
@@ -55,9 +59,11 @@ export const NotificationPreferences: React.FC = () => {
         )}
 
         {/* Sound toggle */}
-        <div className="flex items-center justify-between">
+        <div className="preference-row opacity-0 animate-slide-up stagger-2">
           <div className="flex items-center gap-3">
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-muted">
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+            </div>
             <div className="space-y-0.5">
               <Label htmlFor="sound-toggle" className="font-medium">
                 Notification Sound
@@ -74,13 +80,15 @@ export const NotificationPreferences: React.FC = () => {
           />
         </div>
 
-        <div className="border-t pt-4">
-          <h4 className="text-sm font-medium mb-4">Notification Types</h4>
-          <div className="space-y-4">
+        <div className="border-t pt-4 mt-4">
+          <h4 className="text-sm font-medium mb-4 opacity-0 animate-fade-in stagger-3">Notification Types</h4>
+          <div className="space-y-2">
             {/* Expense notifications */}
-            <div className="flex items-center justify-between">
+            <div className="preference-row opacity-0 animate-slide-up stagger-4">
               <div className="flex items-center gap-3">
-                <Receipt className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-lg bg-muted">
+                  <Receipt className="h-4 w-4 text-muted-foreground" />
+                </div>
                 <div className="space-y-0.5">
                   <Label htmlFor="expense-toggle" className="font-medium">
                     Expense Updates
@@ -98,9 +106,11 @@ export const NotificationPreferences: React.FC = () => {
             </div>
 
             {/* Settlement notifications */}
-            <div className="flex items-center justify-between">
+            <div className="preference-row opacity-0 animate-slide-up stagger-5">
               <div className="flex items-center gap-3">
-                <Handshake className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-lg bg-muted">
+                  <Handshake className="h-4 w-4 text-muted-foreground" />
+                </div>
                 <div className="space-y-0.5">
                   <Label htmlFor="settlement-toggle" className="font-medium">
                     Settlement Updates
@@ -118,9 +128,11 @@ export const NotificationPreferences: React.FC = () => {
             </div>
 
             {/* Member notifications */}
-            <div className="flex items-center justify-between">
+            <div className="preference-row opacity-0 animate-slide-up stagger-6">
               <div className="flex items-center gap-3">
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-lg bg-muted">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </div>
                 <div className="space-y-0.5">
                   <Label htmlFor="member-toggle" className="font-medium">
                     Member Updates
