@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { sendPushNotification } from '@/hooks/usePushNotifications';
-
+import { triggerSuccessConfetti } from '@/lib/confetti';
 export interface Expense {
   id: string;
   group_id: string;
@@ -135,8 +135,15 @@ export function useCreateExpense() {
     onSuccess: (expense, variables) => {
       queryClient.invalidateQueries({ queryKey: ['expenses', variables.groupId] });
       queryClient.invalidateQueries({ queryKey: ['expense-splits', variables.groupId] });
+      
+      // Trigger success celebration!
+      triggerSuccessConfetti();
+      
+      // Store the new expense ID for pulse animation
+      sessionStorage.setItem('newExpenseId', expense.id);
+      
       toast({
-        title: 'Expense added',
+        title: '✨ Expense added!',
         description: 'The expense has been recorded successfully.'
       });
       

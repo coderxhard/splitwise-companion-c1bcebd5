@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Expense, ExpenseSplit } from '@/hooks/useExpenses';
 import { GroupMember } from '@/hooks/useGroups';
 import { formatCurrency } from '@/lib/balanceCalculator';
@@ -23,6 +23,24 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
   onDelete,
   isDeleting
 }) => {
+  const [newExpenseId, setNewExpenseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for newly added expense to animate
+    const storedId = sessionStorage.getItem('newExpenseId');
+    if (storedId) {
+      setNewExpenseId(storedId);
+      sessionStorage.removeItem('newExpenseId');
+      
+      // Clear the animation after it plays
+      const timer = setTimeout(() => {
+        setNewExpenseId(null);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [expenses]);
+
   const getMemberName = (userId: string) => {
     const member = members.find(m => m.user_id === userId);
     return member?.profile?.name || member?.profile?.email?.split('@')[0] || 'Unknown';
@@ -46,13 +64,22 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
   return (
     <div className="space-y-3">
-      {expenses.map((expense) => {
+      {expenses.map((expense, index) => {
         const expenseSplits = getExpenseSplits(expense.id);
         const paidByName = getMemberName(expense.paid_by);
         const isPaidByCurrentUser = expense.paid_by === currentUserId;
+        const isNewExpense = expense.id === newExpenseId;
 
         return (
-          <div key={expense.id} className="card-elevated p-4">
+          <div 
+            key={expense.id} 
+            className={`card-elevated p-4 transition-all duration-300 animate-fade-in-up ${
+              isNewExpense 
+                ? 'animate-expense-success ring-2 ring-primary/50 bg-primary/5' 
+                : ''
+            }`}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
