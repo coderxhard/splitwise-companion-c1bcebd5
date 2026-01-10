@@ -13,6 +13,7 @@ import { Camera, Loader2, User, Sun, Moon, Monitor } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
 import { EmailPreferences } from '@/components/EmailPreferences';
+import { PageTransition } from '@/components/PageTransition';
 
 interface Profile {
   id: string;
@@ -177,16 +178,19 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </Layout>
+      <PageTransition>
+        <Layout>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </Layout>
+      </PageTransition>
     );
   }
 
   return (
-    <Layout>
+    <PageTransition>
+      <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="opacity-0 animate-fade-in-down">
           <h1 className="font-display text-3xl font-bold">Profile Settings</h1>
@@ -318,6 +322,7 @@ const ProfilePage: React.FC = () => {
         </Card>
       </div>
     </Layout>
+    </PageTransition>
   );
 };
 

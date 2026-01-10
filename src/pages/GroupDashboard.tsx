@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { PageTransition, SlideTransition } from '@/components/PageTransition';
 
 const GroupDashboard: React.FC = () => {
   const { id: groupId } = useParams<{ id: string }>();
@@ -104,9 +105,11 @@ const GroupDashboard: React.FC = () => {
 
   if (authLoading || groupLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
+      <PageTransition>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -197,7 +200,8 @@ const GroupDashboard: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <SlideTransition>
+      <Layout>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -487,6 +491,7 @@ const GroupDashboard: React.FC = () => {
         isLoading={createSettlement.isPending}
       />
     </Layout>
+    </SlideTransition>
   );
 };
 

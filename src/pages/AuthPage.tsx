@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { PageTransition } from '@/components/PageTransition';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -30,9 +31,11 @@ const AuthPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
+      <PageTransition>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -117,125 +120,127 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
-      {/* Logo */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
-          <span className="text-2xl font-bold text-primary-foreground">₹</span>
+    <PageTransition>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
+        {/* Logo */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
+            <span className="text-2xl font-bold text-primary-foreground">₹</span>
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-bold text-foreground">SplitMate</h1>
+            <p className="text-sm text-muted-foreground">Hostel & PG Expense Manager</p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">SplitMate</h1>
-          <p className="text-sm text-muted-foreground">Hostel & PG Expense Manager</p>
-        </div>
+
+        <Card className="w-full max-w-md shadow-lg border-0 bg-card">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="font-display text-xl">Welcome</CardTitle>
+            <CardDescription>Sign in to manage your shared expenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Signing in...' : 'Sign In'}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="Rahul Sharma"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm">Confirm Password</Label>
+                    <Input
+                      id="signup-confirm"
+                      type="password"
+                      placeholder="••••••••"
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      className="input-clean"
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Creating account...' : 'Create Account'}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        <p className="mt-8 text-center text-sm text-muted-foreground max-w-sm">
+          Split bills fairly with your hostel mates, PG roommates, or flatmates. Track who owes whom easily.
+        </p>
       </div>
-
-      <Card className="w-full max-w-md shadow-lg border-0 bg-card">
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="font-display text-xl">Welcome</CardTitle>
-          <CardDescription>Sign in to manage your shared expenses</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="Rahul Sharma"
-                    value={signupName}
-                    onChange={(e) => setSignupName(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirm Password</Label>
-                  <Input
-                    id="signup-confirm"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupConfirmPassword}
-                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                    className="input-clean"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Account'}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      <p className="mt-8 text-center text-sm text-muted-foreground max-w-sm">
-        Split bills fairly with your hostel mates, PG roommates, or flatmates. Track who owes whom easily.
-      </p>
-    </div>
+    </PageTransition>
   );
 };
 
