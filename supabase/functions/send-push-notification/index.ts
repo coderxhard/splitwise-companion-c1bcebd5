@@ -1,18 +1,30 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PushPayload {
-  groupId: string;
-  type: 'expense' | 'settlement';
-  title: string;
-  body: string;
-  actorUserId: string; // The user who triggered the action
-}
+// Zod schema for input validation
+const PushPayloadSchema = z.object({
+  groupId: z.string().uuid('Invalid group ID format'),
+  type: z.enum(['expense', 'settlement'], { 
+    errorMap: () => ({ message: 'Type must be "expense" or "settlement"' }) 
+  }),
+  title: z.string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be 100 characters or less')
+    .trim(),
+  body: z.string()
+    .min(1, 'Body is required')
+    .max(500, 'Body must be 500 characters or less')
+    .trim(),
+  actorUserId: z.string().uuid('Invalid actor user ID format')
+});
+
+type PushPayload = z.infer<typeof PushPayloadSchema>;
 
 // Web Push signature helpers
 function base64UrlEncode(data: Uint8Array): string {
@@ -123,16 +135,20 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const payload: PushPayload = await req.json();
-
-    // Validate required fields
-    if (!payload.groupId || !payload.type || !payload.title || !payload.body || !payload.actorUserId) {
-      console.error('Missing required payload fields');
+    
+    // Parse and validate payload with Zod schema
+    const rawPayload = await req.json();
+    const parseResult = PushPayloadSchema.safeParse(rawPayload);
+    
+    if (!parseResult.success) {
+      console.error('Payload validation failed:', parseResult.error.errors);
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Invalid input', details: parseResult.error.errors.map(e => e.message) }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const payload = parseResult.data;
 
     // Verify actorUserId matches authenticated user (prevent spoofing)
     if (payload.actorUserId !== authenticatedUserId) {
