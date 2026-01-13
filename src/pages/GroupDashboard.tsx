@@ -9,7 +9,7 @@ import { RecordSettlementDialog } from '@/components/RecordSettlementDialog';
 import { ExpenseList } from '@/components/ExpenseList';
 import { AddExpenseDialog } from '@/components/AddExpenseDialog';
 import { ExpenseChart } from '@/components/ExpenseChart';
-import { useGroup, useGroupMembers } from '@/hooks/useGroups';
+import { useGroup, useGroupMembers, useRegenerateInviteCode } from '@/hooks/useGroups';
 import { useExpenses, useExpenseSplits, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { useSettlements, useCreateSettlement, useDeleteSettlement } from '@/hooks/useSettlements';
 import { calculateNetBalances, calculateSettlements, formatCurrency } from '@/lib/balanceCalculator';
@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote } from 'lucide-react';
+import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { PageTransition, SlideTransition } from '@/components/PageTransition';
 
@@ -38,6 +38,7 @@ const GroupDashboard: React.FC = () => {
   const deleteExpense = useDeleteExpense();
   const createSettlement = useCreateSettlement();
   const deleteSettlement = useDeleteSettlement();
+  const regenerateInviteCode = useRegenerateInviteCode();
 
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -470,6 +471,50 @@ const GroupDashboard: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Expiration Status */}
+            {group.invite_code_expires_at && (
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                new Date(group.invite_code_expires_at) < new Date() 
+                  ? 'bg-destructive/10 text-destructive' 
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {new Date(group.invite_code_expires_at) < new Date() ? (
+                  <>
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Code expired</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm">
+                      Expires {new Date(group.invite_code_expires_at).toLocaleDateString()}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Single-use indicator */}
+            {group.invite_code_single_use && (
+              <p className="text-xs text-muted-foreground text-center">
+                🔒 Single-use: Code regenerates after someone joins
+              </p>
+            )}
+
+            {/* Regenerate button (only for group creator) */}
+            {group.created_by === user.id && (
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => regenerateInviteCode.mutate(group.id)}
+                disabled={regenerateInviteCode.isPending}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${regenerateInviteCode.isPending ? 'animate-spin' : ''}`} />
+                {regenerateInviteCode.isPending ? 'Regenerating...' : 'Generate New Code'}
+              </Button>
+            )}
+
             <p className="text-sm text-muted-foreground text-center">
               Members can join using this code in the "Join Group" option
             </p>
