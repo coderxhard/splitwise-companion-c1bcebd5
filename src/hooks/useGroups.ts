@@ -9,6 +9,8 @@ export interface Group {
   description: string | null;
   type: string;
   invite_code: string;
+  invite_code_expires_at: string | null;
+  invite_code_single_use: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -153,12 +155,20 @@ export function useJoinGroup() {
       // Find group by invite code
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .select('id')
+        .select('id, invite_code_expires_at')
         .eq('invite_code', inviteCode)
         .maybeSingle();
 
       if (groupError) throw groupError;
       if (!group) throw new Error('Invalid invite code');
+
+      // Check if invite code has expired
+      if (group.invite_code_expires_at) {
+        const expiresAt = new Date(group.invite_code_expires_at);
+        if (expiresAt < new Date()) {
+          throw new Error('This invite code has expired. Please ask the group creator for a new code.');
+        }
+      }
 
       // Check if already a member
       const { data: existingMember } = await supabase
@@ -191,6 +201,35 @@ export function useJoinGroup() {
     onError: (error) => {
       toast({
         title: 'Error joining group',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+}
+
+export function useRegenerateInviteCode() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      const { data, error } = await supabase.rpc('regenerate_invite_code', {
+        group_id: groupId
+      });
+
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: (_, groupId) => {
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      toast({
+        title: 'Invite code regenerated',
+        description: 'A new invite code has been created and will expire in 7 days.'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error regenerating code',
         description: error.message,
         variant: 'destructive'
       });

@@ -168,6 +168,8 @@ export type Database = {
           description: string | null
           id: string
           invite_code: string
+          invite_code_expires_at: string | null
+          invite_code_single_use: boolean | null
           name: string
           type: string
           updated_at: string
@@ -178,6 +180,8 @@ export type Database = {
           description?: string | null
           id?: string
           invite_code?: string
+          invite_code_expires_at?: string | null
+          invite_code_single_use?: boolean | null
           name: string
           type?: string
           updated_at?: string
@@ -188,6 +192,8 @@ export type Database = {
           description?: string | null
           id?: string
           invite_code?: string
+          invite_code_expires_at?: string | null
+          invite_code_single_use?: boolean | null
           name?: string
           type?: string
           updated_at?: string
@@ -334,6 +340,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      regenerate_invite_code: { Args: { group_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
