@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Layout } from '@/components/Layout';
@@ -522,6 +523,19 @@ const GroupDashboard: React.FC = () => {
                   Use 4-20 lowercase letters and numbers only
                 </p>
               )}
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg">
+              <QRCodeSVG 
+                value={inviteUrl} 
+                size={160}
+                level="M"
+                includeMargin={false}
+              />
+              <p className="text-xs text-muted-foreground text-center">
+                Scan to join group
+              </p>
             </div>
 
             {/* Expiration Status */}
