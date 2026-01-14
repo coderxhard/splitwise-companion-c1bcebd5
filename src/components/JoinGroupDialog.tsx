@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, QrCode } from 'lucide-react';
+import { QRScanner } from './QRScanner';
 
 interface JoinGroupDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ export const JoinGroupDialog: React.FC<JoinGroupDialogProps> = ({
   isLoading
 }) => {
   const [inviteCode, setInviteCode] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,16 @@ export const JoinGroupDialog: React.FC<JoinGroupDialogProps> = ({
     onSubmit(inviteCode.trim());
     setInviteCode('');
   };
+
+  const handleScan = (code: string) => {
+    setShowScanner(false);
+    setInviteCode(code);
+    onSubmit(code);
+  };
+
+  if (showScanner) {
+    return <QRScanner onScan={handleScan} onClose={() => setShowScanner(false)} />;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,7 +49,7 @@ export const JoinGroupDialog: React.FC<JoinGroupDialogProps> = ({
             Join a Group
           </DialogTitle>
           <DialogDescription>
-            Enter the invite code shared by your roommate to join their group.
+            Enter the invite code or scan a QR code to join.
           </DialogDescription>
         </DialogHeader>
 
@@ -46,13 +58,23 @@ export const JoinGroupDialog: React.FC<JoinGroupDialogProps> = ({
             <Label htmlFor="inviteCode">Invite Code</Label>
             <Input
               id="inviteCode"
-              placeholder="Enter 12-character code"
+              placeholder="Enter invite code"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               className="input-clean font-mono text-center text-lg tracking-widest"
-              maxLength={12}
+              maxLength={20}
             />
           </div>
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full"
+            onClick={() => setShowScanner(true)}
+          >
+            <QrCode className="h-4 w-4 mr-2" />
+            Scan QR Code
+          </Button>
 
           <div className="flex justify-end gap-3">
             <Button 
