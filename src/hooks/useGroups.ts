@@ -267,3 +267,54 @@ export function useUpdateInviteCodeSettings() {
     }
   });
 }
+
+export function useSetCustomInviteCode() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ groupId, customCode }: { groupId: string; customCode: string }) => {
+      // Validate code format (alphanumeric, 4-20 chars)
+      const cleanCode = customCode.trim().toLowerCase();
+      if (!/^[a-z0-9]{4,20}$/.test(cleanCode)) {
+        throw new Error('Code must be 4-20 alphanumeric characters');
+      }
+
+      // Check if code is already in use by another group
+      const { data: existing, error: checkError } = await supabase
+        .from('groups')
+        .select('id')
+        .eq('invite_code', cleanCode)
+        .neq('id', groupId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+      if (existing) throw new Error('This invite code is already in use');
+
+      const { error } = await supabase
+        .from('groups')
+        .update({ 
+          invite_code: cleanCode,
+          invite_code_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', groupId);
+
+      if (error) throw error;
+      return cleanCode;
+    },
+    onSuccess: (_, { groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      toast({
+        title: 'Custom code set',
+        description: 'Your custom invite code is now active.'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error setting code',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+}

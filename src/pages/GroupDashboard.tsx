@@ -9,7 +9,7 @@ import { RecordSettlementDialog } from '@/components/RecordSettlementDialog';
 import { ExpenseList } from '@/components/ExpenseList';
 import { AddExpenseDialog } from '@/components/AddExpenseDialog';
 import { ExpenseChart } from '@/components/ExpenseChart';
-import { useGroup, useGroupMembers, useRegenerateInviteCode, useUpdateInviteCodeSettings } from '@/hooks/useGroups';
+import { useGroup, useGroupMembers, useRegenerateInviteCode, useUpdateInviteCodeSettings, useSetCustomInviteCode } from '@/hooks/useGroups';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useExpenses, useExpenseSplits, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote, RefreshCw, Clock, AlertTriangle, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { PageTransition, SlideTransition } from '@/components/PageTransition';
 
@@ -42,12 +42,15 @@ const GroupDashboard: React.FC = () => {
   const deleteSettlement = useDeleteSettlement();
   const regenerateInviteCode = useRegenerateInviteCode();
   const updateInviteSettings = useUpdateInviteCodeSettings();
+  const setCustomInviteCode = useSetCustomInviteCode();
 
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [recordSettlementOpen, setRecordSettlementOpen] = useState(false);
   const [suggestedSettlement, setSuggestedSettlement] = useState<{ toUserId: string; amount: number } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [customCodeMode, setCustomCodeMode] = useState(false);
+  const [customCode, setCustomCode] = useState('');
 
   // Calculate balances
   const { balances, settlements, memberNames } = useMemo(() => {
@@ -459,20 +462,66 @@ const GroupDashboard: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Invite Code</label>
-              <div className="flex items-center gap-2 mt-2">
-                <Input 
-                  value={group.invite_code} 
-                  readOnly 
-                  className="font-mono text-center text-lg tracking-widest"
-                />
-                <Button 
-                  size="icon" 
-                  variant="outline" 
-                  onClick={handleCopyInviteCode}
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
+              {customCodeMode && group.created_by === user.id ? (
+                <div className="flex items-center gap-2 mt-2">
+                  <Input 
+                    value={customCode} 
+                    onChange={(e) => setCustomCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                    placeholder="Enter custom code (4-20 chars)"
+                    className="font-mono text-center tracking-widest"
+                    maxLength={20}
+                  />
+                  <Button 
+                    size="sm"
+                    onClick={() => {
+                      setCustomInviteCode.mutate(
+                        { groupId: group.id, customCode },
+                        { onSuccess: () => { setCustomCodeMode(false); setCustomCode(''); } }
+                      );
+                    }}
+                    disabled={setCustomInviteCode.isPending || customCode.length < 4}
+                  >
+                    {setCustomInviteCode.isPending ? '...' : 'Save'}
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => { setCustomCodeMode(false); setCustomCode(''); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-2">
+                  <Input 
+                    value={group.invite_code} 
+                    readOnly 
+                    className="font-mono text-center text-lg tracking-widest"
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="outline" 
+                    onClick={handleCopyInviteCode}
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                  {group.created_by === user.id && (
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      onClick={() => setCustomCodeMode(true)}
+                      title="Set custom code"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
+              {customCodeMode && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Use 4-20 lowercase letters and numbers only
+                </p>
+              )}
             </div>
 
             {/* Expiration Status */}
