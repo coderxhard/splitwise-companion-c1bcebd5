@@ -528,14 +528,43 @@ const GroupDashboard: React.FC = () => {
             {/* QR Code */}
             <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg">
               <QRCodeSVG 
+                id="invite-qr-code"
                 value={inviteUrl} 
                 size={160}
                 level="M"
                 includeMargin={false}
               />
-              <p className="text-xs text-muted-foreground text-center">
-                Scan to join group
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Scan to join group
+                </p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-xs"
+                  onClick={() => {
+                    const svg = document.getElementById('invite-qr-code');
+                    if (!svg) return;
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.onload = () => {
+                      canvas.width = img.width;
+                      canvas.height = img.height;
+                      ctx?.drawImage(img, 0, 0);
+                      const link = document.createElement('a');
+                      link.download = `${group.name.replace(/\s+/g, '-')}-invite-qr.png`;
+                      link.href = canvas.toDataURL('image/png');
+                      link.click();
+                    };
+                    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                  }}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+              </div>
             </div>
 
             {/* Expiration Status */}
