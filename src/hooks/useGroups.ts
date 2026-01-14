@@ -236,3 +236,34 @@ export function useRegenerateInviteCode() {
     }
   });
 }
+
+export function useUpdateInviteCodeSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ groupId, singleUse }: { groupId: string; singleUse: boolean }) => {
+      const { error } = await supabase
+        .from('groups')
+        .update({ invite_code_single_use: singleUse })
+        .eq('id', groupId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { groupId, singleUse }) => {
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      toast({
+        title: 'Settings updated',
+        description: singleUse 
+          ? 'Invite code will now regenerate after each use.' 
+          : 'Invite code can now be used multiple times.'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error updating settings',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+}

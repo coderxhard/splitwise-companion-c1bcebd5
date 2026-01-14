@@ -9,7 +9,9 @@ import { RecordSettlementDialog } from '@/components/RecordSettlementDialog';
 import { ExpenseList } from '@/components/ExpenseList';
 import { AddExpenseDialog } from '@/components/AddExpenseDialog';
 import { ExpenseChart } from '@/components/ExpenseChart';
-import { useGroup, useGroupMembers, useRegenerateInviteCode } from '@/hooks/useGroups';
+import { useGroup, useGroupMembers, useRegenerateInviteCode, useUpdateInviteCodeSettings } from '@/hooks/useGroups';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useExpenses, useExpenseSplits, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { useSettlements, useCreateSettlement, useDeleteSettlement } from '@/hooks/useSettlements';
 import { calculateNetBalances, calculateSettlements, formatCurrency } from '@/lib/balanceCalculator';
@@ -39,6 +41,7 @@ const GroupDashboard: React.FC = () => {
   const createSettlement = useCreateSettlement();
   const deleteSettlement = useDeleteSettlement();
   const regenerateInviteCode = useRegenerateInviteCode();
+  const updateInviteSettings = useUpdateInviteCodeSettings();
 
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -495,8 +498,30 @@ const GroupDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Single-use indicator */}
-            {group.invite_code_single_use && (
+            {/* Single-use toggle (only for group creator) */}
+            {group.created_by === user.id && (
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="space-y-0.5">
+                  <Label htmlFor="single-use-toggle" className="text-sm font-medium">
+                    Single-use code
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Code regenerates after someone joins
+                  </p>
+                </div>
+                <Switch
+                  id="single-use-toggle"
+                  checked={group.invite_code_single_use ?? true}
+                  onCheckedChange={(checked) => 
+                    updateInviteSettings.mutate({ groupId: group.id, singleUse: checked })
+                  }
+                  disabled={updateInviteSettings.isPending}
+                />
+              </div>
+            )}
+
+            {/* Single-use indicator for non-creators */}
+            {group.created_by !== user.id && group.invite_code_single_use && (
               <p className="text-xs text-muted-foreground text-center">
                 🔒 Single-use: Code regenerates after someone joins
               </p>
