@@ -572,11 +572,61 @@ const GroupDashboard: React.FC = () => {
                       className="h-6 px-2 text-xs"
                       onClick={async () => {
                         try {
-                          await navigator.share({
-                            title: `Join ${group.name}`,
-                            text: `Join my group "${group.name}" on our expense tracker!`,
-                            url: inviteUrl,
-                          });
+                          const svg = document.getElementById('invite-qr-code');
+                          if (!svg) {
+                            await navigator.share({
+                              title: `Join ${group.name}`,
+                              text: `Join my group "${group.name}" on our expense tracker!`,
+                              url: inviteUrl,
+                            });
+                            return;
+                          }
+                          
+                          const svgData = new XMLSerializer().serializeToString(svg);
+                          const canvas = document.createElement('canvas');
+                          const ctx = canvas.getContext('2d');
+                          const img = new Image();
+                          
+                          img.onload = async () => {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx?.drawImage(img, 0, 0);
+                            
+                            canvas.toBlob(async (blob) => {
+                              if (!blob) {
+                                await navigator.share({
+                                  title: `Join ${group.name}`,
+                                  text: `Join my group "${group.name}" on our expense tracker!`,
+                                  url: inviteUrl,
+                                });
+                                return;
+                              }
+                              
+                              const file = new File([blob], `${group.name.replace(/\s+/g, '-')}-invite-qr.png`, { type: 'image/png' });
+                              
+                              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                try {
+                                  await navigator.share({
+                                    title: `Join ${group.name}`,
+                                    text: `Join my group "${group.name}" on our expense tracker!\n${inviteUrl}`,
+                                    files: [file],
+                                  });
+                                } catch (err) {
+                                  if ((err as Error).name !== 'AbortError') {
+                                    toast({ title: 'Share failed', description: 'Unable to share the QR code.' });
+                                  }
+                                }
+                              } else {
+                                await navigator.share({
+                                  title: `Join ${group.name}`,
+                                  text: `Join my group "${group.name}" on our expense tracker!`,
+                                  url: inviteUrl,
+                                });
+                              }
+                            }, 'image/png');
+                          };
+                          
+                          img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
                         } catch (err) {
                           if ((err as Error).name !== 'AbortError') {
                             toast({ title: 'Share failed', description: 'Unable to share the invite link.' });
