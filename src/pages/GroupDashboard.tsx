@@ -579,6 +579,7 @@ const GroupDashboard: React.FC = () => {
                               text: `Join my group "${group.name}" on our expense tracker!`,
                               url: inviteUrl,
                             });
+                            toast({ title: 'Invite shared!', description: 'The invite link was shared successfully.' });
                             return;
                           }
                           
@@ -589,6 +590,7 @@ const GroupDashboard: React.FC = () => {
                               text: `Join my group "${group.name}" on our expense tracker!`,
                               url: inviteUrl,
                             });
+                            toast({ title: 'Invite shared!', description: 'The invite link was shared successfully.' });
                             return;
                           }
                           
@@ -609,6 +611,7 @@ const GroupDashboard: React.FC = () => {
                                   text: `Join my group "${group.name}" on our expense tracker!`,
                                   url: inviteUrl,
                                 });
+                                toast({ title: 'Invite shared!', description: 'The invite link was shared successfully.' });
                                 return;
                               }
                               
@@ -621,6 +624,7 @@ const GroupDashboard: React.FC = () => {
                                     text: `Join my group "${group.name}" on our expense tracker!\n${inviteUrl}`,
                                     files: [file],
                                   });
+                                  toast({ title: 'Invite shared!', description: 'The QR code was shared successfully.' });
                                 } catch (err) {
                                   if ((err as Error).name !== 'AbortError') {
                                     toast({ title: 'Share failed', description: 'Unable to share the QR code.' });
@@ -632,6 +636,7 @@ const GroupDashboard: React.FC = () => {
                                   text: `Join my group "${group.name}" on our expense tracker!`,
                                   url: inviteUrl,
                                 });
+                                toast({ title: 'Invite shared!', description: 'The invite link was shared successfully.' });
                               }
                             }, 'image/png');
                           };
