@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote, RefreshCw, Clock, AlertTriangle, Pencil } from 'lucide-react';
+import { Plus, ArrowLeft, Copy, Check, Share2, TrendingUp, Wallet, Users, PieChart, BarChart3, Download, FileText, FileSpreadsheet, History, Banknote, RefreshCw, Clock, AlertTriangle, Pencil, Share } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { PageTransition, SlideTransition } from '@/components/PageTransition';
 
@@ -534,36 +534,61 @@ const GroupDashboard: React.FC = () => {
                 level="M"
                 includeMargin={false}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center gap-2">
                 <p className="text-xs text-muted-foreground">
                   Scan to join group
                 </p>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => {
-                    const svg = document.getElementById('invite-qr-code');
-                    if (!svg) return;
-                    const svgData = new XMLSerializer().serializeToString(svg);
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image();
-                    img.onload = () => {
-                      canvas.width = img.width;
-                      canvas.height = img.height;
-                      ctx?.drawImage(img, 0, 0);
-                      const link = document.createElement('a');
-                      link.download = `${group.name.replace(/\s+/g, '-')}-invite-qr.png`;
-                      link.href = canvas.toDataURL('image/png');
-                      link.click();
-                    };
-                    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-                  }}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  Save
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      const svg = document.getElementById('invite-qr-code');
+                      if (!svg) return;
+                      const svgData = new XMLSerializer().serializeToString(svg);
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      const img = new Image();
+                      img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx?.drawImage(img, 0, 0);
+                        const link = document.createElement('a');
+                        link.download = `${group.name.replace(/\s+/g, '-')}-invite-qr.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                      };
+                      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                    }}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Save
+                  </Button>
+                  {typeof navigator.share === 'function' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-xs"
+                      onClick={async () => {
+                        try {
+                          await navigator.share({
+                            title: `Join ${group.name}`,
+                            text: `Join my group "${group.name}" on our expense tracker!`,
+                            url: inviteUrl,
+                          });
+                        } catch (err) {
+                          if ((err as Error).name !== 'AbortError') {
+                            toast({ title: 'Share failed', description: 'Unable to share the invite link.' });
+                          }
+                        }
+                      }}
+                    >
+                      <Share className="h-3 w-3 mr-1" />
+                      Share
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
