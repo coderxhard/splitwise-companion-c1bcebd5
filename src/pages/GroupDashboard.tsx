@@ -52,6 +52,7 @@ const GroupDashboard: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [customCodeMode, setCustomCodeMode] = useState(false);
   const [customCode, setCustomCode] = useState('');
+  const [shareWithQR, setShareWithQR] = useState(true);
 
   // Calculate balances
   const { balances, settlements, memberNames } = useMemo(() => {
@@ -572,6 +573,15 @@ const GroupDashboard: React.FC = () => {
                       className="h-6 px-2 text-xs"
                       onClick={async () => {
                         try {
+                          if (!shareWithQR) {
+                            await navigator.share({
+                              title: `Join ${group.name}`,
+                              text: `Join my group "${group.name}" on our expense tracker!`,
+                              url: inviteUrl,
+                            });
+                            return;
+                          }
+                          
                           const svg = document.getElementById('invite-qr-code');
                           if (!svg) {
                             await navigator.share({
@@ -639,6 +649,19 @@ const GroupDashboard: React.FC = () => {
                     </Button>
                   )}
                 </div>
+                {typeof navigator.share === 'function' && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Switch
+                      id="share-qr-toggle"
+                      checked={shareWithQR}
+                      onCheckedChange={setShareWithQR}
+                      className="h-4 w-7 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
+                    />
+                    <Label htmlFor="share-qr-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                      Include QR code
+                    </Label>
+                  </div>
+                )}
               </div>
             </div>
 
