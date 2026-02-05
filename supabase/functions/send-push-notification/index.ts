@@ -7,6 +7,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minute per user
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+// Clean up old entries periodically
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  for (const [key, value] of rateLimitMap.entries()) {
+    if (now > value.resetTime) {
+      rateLimitMap.delete(key);
+    }
+  }
+}
+
+// Check rate limit for a user
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetIn: number } {
+  cleanupRateLimitMap();
+  const now = Date.now();
+  const existing = rateLimitMap.get(userId);
+  
+  if (!existing || now > existing.resetTime) {
+    // New window
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (existing.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetIn: existing.resetTime - now };
+  }
+  
+  existing.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - existing.count, resetIn: existing.resetTime - now };
+}
+
 // Zod schema for input validation
 const PushPayloadSchema = z.object({
   groupId: z.string().uuid('Invalid group ID format'),
@@ -124,7 +159,27 @@ serve(async (req) => {
       );
     }
 
-    const authenticatedUserId = claimsData.claims.sub;
+    const authenticatedUserId = claimsData.claims.sub as string;
+
+    // Check rate limit before processing
+    const rateLimit = checkRateLimit(authenticatedUserId);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for user ${authenticatedUserId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded', 
+          retryAfter: Math.ceil(rateLimit.resetIn / 1000) 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(rateLimit.resetIn / 1000))
+          } 
+        }
+      );
+    }
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('VAPID keys not configured');
