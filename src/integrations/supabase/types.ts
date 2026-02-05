@@ -347,6 +347,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_group_with_invite_code: {
+        Args: { _group_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          invite_code: string
+          invite_code_expires_at: string
+          invite_code_single_use: boolean
+          name: string
+          type: string
+          updated_at: string
+        }[]
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean

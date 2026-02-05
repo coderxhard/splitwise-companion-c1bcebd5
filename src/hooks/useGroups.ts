@@ -57,10 +57,9 @@ export function useGroup(groupId: string) {
     queryFn: async () => {
       if (!user || !groupId) return null;
 
+      // Use secure RPC function that hides invite codes from non-creators
       const { data, error } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('id', groupId)
+        .rpc('get_group_with_invite_code', { _group_id: groupId })
         .maybeSingle();
 
       if (error) throw error;
