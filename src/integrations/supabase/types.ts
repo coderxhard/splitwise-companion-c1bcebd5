@@ -336,6 +336,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_group_member_profiles: {
+        Args: { _group_id: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
