@@ -24,7 +24,7 @@ export interface GroupMember {
   profile?: {
     id: string;
     name: string;
-    email: string;
+    email?: string; // Email is now optional - not exposed to other group members for privacy
     avatar_url: string | null;
   };
 }
@@ -85,19 +85,16 @@ export function useGroupMembers(groupId: string) {
 
       if (membersError) throw membersError;
 
-      // Fetch profiles for each member
-      const userIds = members.map(m => m.user_id);
+      // Use secure RPC function to get profiles without exposing emails
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('user_id', userIds);
+        .rpc('get_group_member_profiles', { _group_id: groupId });
 
       if (profilesError) throw profilesError;
 
-      // Combine members with profiles
+      // Combine members with profiles (email is no longer exposed)
       const membersWithProfiles = members.map(member => ({
         ...member,
-        profile: profiles?.find(p => p.user_id === member.user_id)
+        profile: profiles?.find((p: { user_id: string }) => p.user_id === member.user_id)
       }));
 
       return membersWithProfiles as GroupMember[];
