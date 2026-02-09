@@ -148,14 +148,14 @@ export function useJoinGroup() {
     mutationFn: async (inviteCode: string) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Find group by invite code
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .select('id, invite_code_expires_at')
-        .eq('invite_code', inviteCode)
-        .maybeSingle();
+      // Use secure RPC function to find group by invite code
+      // This bypasses RLS so non-members can look up the group to join
+      const { data: groups, error: groupError } = await supabase
+        .rpc('lookup_group_by_invite_code', { _invite_code: inviteCode });
 
       if (groupError) throw groupError;
+      
+      const group = groups?.[0];
       if (!group) throw new Error('Invalid invite code');
 
       // Note: We no longer enforce expiration on invite codes

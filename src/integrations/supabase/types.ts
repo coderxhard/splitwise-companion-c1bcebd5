@@ -366,6 +366,14 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      lookup_group_by_invite_code: {
+        Args: { _invite_code: string }
+        Returns: {
+          id: string
+          invite_code_expires_at: string
+          name: string
+        }[]
+      }
       regenerate_invite_code: { Args: { group_id: string }; Returns: string }
     }
     Enums: {
